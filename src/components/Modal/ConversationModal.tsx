@@ -12,6 +12,7 @@ import {
     Button,
 } from "@chakra-ui/react";
 import { useState } from "react";
+import UserSearchList from "./UserSearchList";
 
 interface ConversationModalProps {
     isModalOpen: boolean;
@@ -28,6 +29,7 @@ const ConversationModal: React.FC<ConversationModalProps> = ({
         userOperations.Queries.searchUsers
     );
 
+    console.log("Users Serach", data);
     const onSearch = async (e: React.FormEvent) => {
         e.preventDefault();
         await searchUsers({ variables: { username } });
@@ -38,7 +40,7 @@ const ConversationModal: React.FC<ConversationModalProps> = ({
             <Modal isOpen={isModalOpen} onClose={onModalClose}>
                 <ModalOverlay />
                 <ModalContent bg={"#2d2d2d"} pb={4}>
-                    <ModalHeader>Modal Title</ModalHeader>
+                    <ModalHeader>Create a Conversation</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
                         <form onSubmit={onSearch}>
@@ -50,11 +52,18 @@ const ConversationModal: React.FC<ConversationModalProps> = ({
                                         setUsername(e.target.value);
                                     }}
                                 />
-                                <Button type="submit" isDisabled={!username}>
+                                <Button
+                                    type="submit"
+                                    isDisabled={!username}
+                                    isLoading={loading}
+                                >
                                     Search
                                 </Button>
                             </Stack>
                         </form>
+                        {data?.searchUsers && (
+                            <UserSearchList users={data.searchUsers} />
+                        )}
                     </ModalBody>
                 </ModalContent>
             </Modal>

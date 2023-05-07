@@ -7,6 +7,7 @@ const userOperations = {
                 searchUsers(username: $username) {
                     id
                     username
+                    image
                 }
             }
         `),
