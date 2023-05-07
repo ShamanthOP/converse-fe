@@ -4,6 +4,7 @@ import { Button, Center, Image, Input, Stack, Text } from "@chakra-ui/react";
 import { Session } from "next-auth";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
+import { toast } from "react-hot-toast";
 
 interface AuthProps {
     session: Session | null;
@@ -13,18 +14,28 @@ interface AuthProps {
 const Auth: React.FC<AuthProps> = ({ session, reloadSession }) => {
     const [username, setUsername] = useState("");
 
-    const [createUsername, { data, loading, error }] = useMutation(
+    const [createUsername, { loading, error }] = useMutation(
         userOperations.Muatations.createUsername
     );
-
-    console.log("Mutation", data, loading, error);
 
     const onSubmit = async () => {
         if (!username) return;
         try {
-            await createUsername({ variables: { username } });
-        } catch (error) {
-            console.log("Error:", error);
+            const { data } = await createUsername({ variables: { username } });
+
+            if (!data?.createUsername) {
+                throw new Error();
+            }
+
+            if (data.createUsername.error) {
+                const error = data.createUsername.error;
+                throw new Error(error);
+            }
+            toast.success("Username successfully created 🙌");
+            reloadSession();
+        } catch (error: any) {
+            toast.error(error?.message);
+            console.log("Error:", error.message);
         }
     };
 
