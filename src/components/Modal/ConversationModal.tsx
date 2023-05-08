@@ -1,5 +1,5 @@
 import userOperations from "@/graphql/operations/user";
-import { useLazyQuery } from "@apollo/client";
+import { useLazyQuery, useMutation } from "@apollo/client";
 import {
     Modal,
     ModalOverlay,
@@ -13,21 +13,63 @@ import {
 } from "@chakra-ui/react";
 import { useState } from "react";
 import UserSearchList from "./UserSearchList";
+import { SearchedUser } from "@/gql/graphql";
+import ParticipantsList from "./ParticipantsList";
+import { toast } from "react-hot-toast";
+import conversationOperations from "@/graphql/operations/conversation";
+import { Session } from "next-auth";
+import { Maybe } from "@/gql/graphql";
 
 interface ConversationModalProps {
     isModalOpen: boolean;
     onModalClose: () => void;
+    session: Session;
 }
 
 const ConversationModal: React.FC<ConversationModalProps> = ({
     isModalOpen,
     onModalClose,
+    session,
 }) => {
     const [username, setUsername] = useState("");
+    const [participants, setParticipants] = useState<Array<SearchedUser>>([]);
+
+    const {
+        user: { id: currentUserId },
+    } = session;
 
     const [searchUsers, { data, loading, error }] = useLazyQuery(
         userOperations.Queries.searchUsers
     );
+
+    const [createConversation, { loading: createConversationLoading }] =
+        useMutation(conversationOperations.Muatations.createConversation);
+
+    const addParticipant = (user: SearchedUser) => {
+        if (!participants.find((participant) => participant.id === user.id)) {
+            setParticipants((prev) => [...prev, user]);
+        }
+        setUsername("");
+    };
+
+    const removeParticipant = (user: SearchedUser) => {
+        setParticipants((prev) => prev.filter((p) => p.id !== user.id));
+    };
+
+    const onCreateConversation = async () => {
+        const participantIds = [
+            currentUserId,
+            ...participants.map((participant) => participant.id),
+        ] as Maybe<string>[];
+        try {
+            const { data } = await createConversation({
+                variables: { participantIds },
+            });
+        } catch (e: any) {
+            console.log("OncreateConversation", e);
+            toast.error(e?.message);
+        }
+    };
 
     console.log("Users Serach", data);
     const onSearch = async (e: React.FormEvent) => {
@@ -62,7 +104,30 @@ const ConversationModal: React.FC<ConversationModalProps> = ({
                             </Stack>
                         </form>
                         {data?.searchUsers && (
-                            <UserSearchList users={data.searchUsers} />
+                            <UserSearchList
+                                users={data.searchUsers as SearchedUser[]}
+                                addParticipant={addParticipant}
+                            />
+                        )}
+                        {participants.length !== 0 && (
+                            <>
+                                <ParticipantsList
+                                    participants={participants}
+                                    removeParticipant={removeParticipant}
+                                />
+                                <Button
+                                    bg={"brand.100"}
+                                    width={"100%"}
+                                    mt={6}
+                                    _hover={{ bg: "brand.100" }}
+                                    isLoading={createConversationLoading}
+                                    onClick={() => {
+                                        onCreateConversation();
+                                    }}
+                                >
+                                    Create Conversation
+                                </Button>
+                            </>
                         )}
                     </ModalBody>
                 </ModalContent>

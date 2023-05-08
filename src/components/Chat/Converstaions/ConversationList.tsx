@@ -31,6 +31,7 @@ const ConversationList: React.FC<ConversationListProps> = ({ session }) => {
             <ConversationModal
                 isModalOpen={isModalOpen}
                 onModalClose={onModalClose}
+                session={session}
             />
         </Box>
     );
