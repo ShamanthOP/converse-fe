@@ -12,6 +12,16 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
+  Date: any;
+};
+
+export type Conversation = {
+  __typename?: 'Conversation';
+  createdAt?: Maybe<Scalars['Date']>;
+  id?: Maybe<Scalars['String']>;
+  latestMessage?: Maybe<Message>;
+  participants?: Maybe<Array<Maybe<Participant>>>;
+  updatedAt?: Maybe<Scalars['Date']>;
 };
 
 export type CreateConversationResponse = {
@@ -23,6 +33,14 @@ export type CreateUsernameResponse = {
   __typename?: 'CreateUsernameResponse';
   error?: Maybe<Scalars['String']>;
   success?: Maybe<Scalars['Boolean']>;
+};
+
+export type Message = {
+  __typename?: 'Message';
+  body?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['Date']>;
+  id?: Maybe<Scalars['String']>;
+  sender?: Maybe<User>;
 };
 
 export type Mutation = {
@@ -41,8 +59,16 @@ export type MutationCreateUsernameArgs = {
   username?: InputMaybe<Scalars['String']>;
 };
 
+export type Participant = {
+  __typename?: 'Participant';
+  hasSeenLastMessage?: Maybe<Scalars['Boolean']>;
+  id?: Maybe<Scalars['String']>;
+  user?: Maybe<User>;
+};
+
 export type Query = {
   __typename?: 'Query';
+  conversations?: Maybe<Array<Maybe<Conversation>>>;
   searchUsers?: Maybe<Array<Maybe<SearchedUser>>>;
 };
 
@@ -57,6 +83,21 @@ export type SearchedUser = {
   image?: Maybe<Scalars['String']>;
   username?: Maybe<Scalars['String']>;
 };
+
+export type User = {
+  __typename?: 'User';
+  email?: Maybe<Scalars['String']>;
+  emailVerified?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['String']>;
+  image?: Maybe<Scalars['String']>;
+  name?: Maybe<Scalars['String']>;
+  username?: Maybe<Scalars['String']>;
+};
+
+export type ConversationsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ConversationsQuery = { __typename?: 'Query', conversations?: Array<{ __typename?: 'Conversation', id?: string | null, updatedAt?: any | null, participants?: Array<{ __typename?: 'Participant', hasSeenLastMessage?: boolean | null, user?: { __typename?: 'User', id?: string | null, username?: string | null, image?: string | null } | null } | null> | null, latestMessage?: { __typename?: 'Message', id?: string | null, body?: string | null, createdAt?: any | null, sender?: { __typename?: 'User', id?: string | null, username?: string | null } | null } | null } | null> | null };
 
 export type CreateConversationMutationVariables = Exact<{
   participantIds: Array<InputMaybe<Scalars['String']>> | InputMaybe<Scalars['String']>;
@@ -80,6 +121,7 @@ export type CreateUsernameMutationVariables = Exact<{
 export type CreateUsernameMutation = { __typename?: 'Mutation', createUsername?: { __typename?: 'CreateUsernameResponse', success?: boolean | null, error?: string | null } | null };
 
 
+export const ConversationsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Conversations"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"conversations"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"participants"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"image"}}]}},{"kind":"Field","name":{"kind":"Name","value":"hasSeenLastMessage"}}]}},{"kind":"Field","name":{"kind":"Name","value":"latestMessage"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"sender"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}}]}},{"kind":"Field","name":{"kind":"Name","value":"body"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}}]}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]}}]} as unknown as DocumentNode<ConversationsQuery, ConversationsQueryVariables>;
 export const CreateConversationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateConversation"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"participantIds"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createConversation"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"participantIds"},"value":{"kind":"Variable","name":{"kind":"Name","value":"participantIds"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"conversationId"}}]}}]}}]} as unknown as DocumentNode<CreateConversationMutation, CreateConversationMutationVariables>;
 export const SearchUsersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"SearchUsers"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"username"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"searchUsers"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"username"},"value":{"kind":"Variable","name":{"kind":"Name","value":"username"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"image"}}]}}]}}]} as unknown as DocumentNode<SearchUsersQuery, SearchUsersQueryVariables>;
 export const CreateUsernameDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateUsername"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"username"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createUsername"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"username"},"value":{"kind":"Variable","name":{"kind":"Name","value":"username"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"success"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]}}]} as unknown as DocumentNode<CreateUsernameMutation, CreateUsernameMutationVariables>;

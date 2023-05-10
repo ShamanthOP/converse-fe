@@ -1,13 +1,19 @@
-import ConversationModal from "@/components/Modal/ConversationModal";
+import ConversationModal from "@/components/Chat/Converstaions/Modal/ConversationModal";
+import { Conversation } from "@/gql/graphql";
 import { Box, Text } from "@chakra-ui/react";
 import { Session } from "next-auth";
 import { useState } from "react";
+import ConversationItem from "./ConversationItem";
 
 interface ConversationListProps {
     session: Session;
+    conversations: Array<Conversation>;
 }
 
-const ConversationList: React.FC<ConversationListProps> = ({ session }) => {
+const ConversationList: React.FC<ConversationListProps> = ({
+    session,
+    conversations,
+}) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const onModalOpen = () => setIsModalOpen(true);
@@ -33,6 +39,14 @@ const ConversationList: React.FC<ConversationListProps> = ({ session }) => {
                 onModalClose={onModalClose}
                 session={session}
             />
+            {conversations.map((conversation) => {
+                return (
+                    <ConversationItem
+                        key={conversation.id}
+                        conversation={conversation}
+                    />
+                );
+            })}
         </Box>
     );
 };

@@ -19,6 +19,7 @@ import { toast } from "react-hot-toast";
 import conversationOperations from "@/graphql/operations/conversation";
 import { Session } from "next-auth";
 import { Maybe } from "@/gql/graphql";
+import { useRouter } from "next/router";
 
 interface ConversationModalProps {
     isModalOpen: boolean;
@@ -31,6 +32,7 @@ const ConversationModal: React.FC<ConversationModalProps> = ({
     onModalClose,
     session,
 }) => {
+    const router = useRouter();
     const [username, setUsername] = useState("");
     const [participants, setParticipants] = useState<Array<SearchedUser>>([]);
 
@@ -65,6 +67,18 @@ const ConversationModal: React.FC<ConversationModalProps> = ({
             const { data } = await createConversation({
                 variables: { participantIds },
             });
+            if (!data?.createConversation) {
+                throw new Error("Failed to create conversation");
+            }
+
+            const {
+                createConversation: { conversationId },
+            } = data;
+            router.push({ query: { conversationId } });
+
+            setParticipants([]);
+            setUsername("");
+            onModalClose();
         } catch (e: any) {
             console.log("OncreateConversation", e);
             toast.error(e?.message);
