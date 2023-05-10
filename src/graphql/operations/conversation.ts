@@ -37,7 +37,33 @@ const conversationOperations = {
             }
         `),
     },
-    Subscriptions: {},
+    Subscriptions: {
+        conversationCreated: gql(`
+            subscription ConversationCreated {
+                conversationCreated {
+                    id
+                    participants {
+                        user {
+                            id
+                            username
+                            image
+                        }
+                        hasSeenLastMessage
+                    }
+                    latestMessage {
+                        id 
+                        sender {
+                            id
+                            username
+                        }
+                        body
+                        createdAt
+                    }
+                    updatedAt
+                }
+            }
+        `),
+    },
 };
 
 export default conversationOperations;
