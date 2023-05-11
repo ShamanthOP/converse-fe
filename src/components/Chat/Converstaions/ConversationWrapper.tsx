@@ -5,6 +5,7 @@ import { useQuery } from "@apollo/client";
 import conversationOperations from "@/graphql/operations/conversation";
 import { Conversation } from "@/gql/graphql";
 import { useEffect } from "react";
+import { useRouter } from "next/router";
 
 interface ConversationWrapperProps {
     session: Session;
@@ -20,7 +21,16 @@ const ConversationWrapper: React.FC<ConversationWrapperProps> = ({
         subscribeToMore,
     } = useQuery(conversationOperations.Queries.conversations);
 
+    const router = useRouter();
+    const {
+        query: { conversationId },
+    } = router;
+
     console.log("Conversations", conversationsData);
+
+    const onViewConversation = async (conversationId: string) => {
+        router.push({ query: { conversationId } });
+    };
 
     const subscribeToNewConversations = () => {
         subscribeToMore({
@@ -52,8 +62,9 @@ const ConversationWrapper: React.FC<ConversationWrapperProps> = ({
 
     return (
         <Box
+            display={{ base: conversationId ? "none" : "flex", md: "flex" }}
             width={{ base: "100%", md: "400px" }}
-            bg="whiteAlpha.200"
+            bg="whiteAlpha.100"
             py={6}
             px={3}
         >
@@ -63,6 +74,7 @@ const ConversationWrapper: React.FC<ConversationWrapperProps> = ({
                     (conversationsData?.conversations as Array<Conversation>) ||
                     ([] as Array<Conversation>)
                 }
+                onViewConversation={onViewConversation}
             />
         </Box>
     );
