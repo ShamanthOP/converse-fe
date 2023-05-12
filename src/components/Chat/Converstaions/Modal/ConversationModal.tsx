@@ -85,7 +85,6 @@ const ConversationModal: React.FC<ConversationModalProps> = ({
         }
     };
 
-    console.log("Users Serach", data);
     const onSearch = async (e: React.FormEvent) => {
         e.preventDefault();
         await searchUsers({ variables: { username } });

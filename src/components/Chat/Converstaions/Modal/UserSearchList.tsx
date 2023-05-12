@@ -1,5 +1,5 @@
 import { SearchedUser } from "@/gql/graphql";
-import { Avatar, Button, Center, Flex, Stack, Text } from "@chakra-ui/react";
+import { Avatar, Button, Flex, Stack, Text } from "@chakra-ui/react";
 
 interface UserSearchListProps {
     users: Array<SearchedUser>;

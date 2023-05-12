@@ -6,6 +6,7 @@ import conversationOperations from "@/graphql/operations/conversation";
 import { Conversation } from "@/gql/graphql";
 import { useEffect } from "react";
 import { useRouter } from "next/router";
+import SkeletonLoader from "@/components/common/SkeletonLoader";
 
 interface ConversationWrapperProps {
     session: Session;
@@ -64,18 +65,24 @@ const ConversationWrapper: React.FC<ConversationWrapperProps> = ({
         <Box
             display={{ base: conversationId ? "none" : "flex", md: "flex" }}
             width={{ base: "100%", md: "400px" }}
+            flexDirection={"column"}
             bg="whiteAlpha.100"
+            gap={4}
             py={6}
             px={3}
         >
-            <ConversationList
-                session={session}
-                conversations={
-                    (conversationsData?.conversations as Array<Conversation>) ||
-                    ([] as Array<Conversation>)
-                }
-                onViewConversation={onViewConversation}
-            />
+            {conversationsLoading ? (
+                <SkeletonLoader count={7} height="80px" />
+            ) : (
+                <ConversationList
+                    session={session}
+                    conversations={
+                        (conversationsData?.conversations as Array<Conversation>) ||
+                        ([] as Array<Conversation>)
+                    }
+                    onViewConversation={onViewConversation}
+                />
+            )}
         </Box>
     );
 };
