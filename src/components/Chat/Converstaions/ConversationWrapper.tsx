@@ -1,7 +1,7 @@
 import { Box } from "@chakra-ui/react";
 import { Session } from "next-auth";
 import ConversationList from "./ConversationList";
-import { gql, useMutation, useQuery } from "@apollo/client";
+import { gql, useMutation, useQuery, useSubscription } from "@apollo/client";
 import conversationOperations from "@/graphql/operations/conversation";
 import { Conversation, Participant } from "@/gql/graphql";
 import { useEffect } from "react";
@@ -33,6 +33,50 @@ const ConversationWrapper: React.FC<ConversationWrapperProps> = ({
     const [markConversationAsRead] = useMutation(
         conversationOperations.Muatations.markConversationAsRead
     );
+
+    useSubscription(conversationOperations.Subscriptions.conversationUpdated, {
+        onData: ({ client, data }) => {
+            const { data: subscriptionData } = data;
+            if (!subscriptionData) {
+                return;
+            }
+
+            const currentlyViewingConversation =
+                subscriptionData.conversationUpdated?.id === conversationId;
+            if (currentlyViewingConversation) {
+                onViewConversation(conversationId!, false);
+            }
+        },
+    });
+
+    useSubscription(conversationOperations.Subscriptions.conversationDeleted, {
+        onData: ({ client, data }) => {
+            const { data: subscriptionData } = data;
+            if (!subscriptionData) {
+                return;
+            }
+
+            const existingConversations = client.readQuery({
+                query: conversationOperations.Queries.conversations,
+            });
+            if (!existingConversations) return;
+            const { conversations } = existingConversations;
+            client.writeQuery({
+                query: conversationOperations.Queries.conversations,
+                data: {
+                    conversations: conversations?.filter((conversation) => {
+                        if (!conversation) return false;
+                        return (
+                            conversation.id !==
+                            subscriptionData.conversationDeleted?.id
+                        );
+                    }),
+                },
+            });
+
+            router.push("/");
+        },
+    });
 
     const onViewConversation = async (
         conversationId: string,

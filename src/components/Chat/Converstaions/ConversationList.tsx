@@ -1,10 +1,14 @@
 import ConversationModal from "@/components/Chat/Converstaions/Modal/ConversationModal";
 import { Conversation } from "@/gql/graphql";
-import { Box, Text } from "@chakra-ui/react";
+import { Box, Button, Text } from "@chakra-ui/react";
 import { Session } from "next-auth";
 import { useState } from "react";
 import ConversationItem from "./ConversationItem";
 import { useRouter } from "next/router";
+import { toast } from "react-hot-toast";
+import { useMutation } from "@apollo/client";
+import conversationOperations from "@/graphql/operations/conversation";
+import { signOut } from "next-auth/react";
 
 interface ConversationListProps {
     session: Session;
@@ -26,11 +30,45 @@ const ConversationList: React.FC<ConversationListProps> = ({
     } = session;
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    const [deleteConversation] = useMutation(
+        conversationOperations.Muatations.deleteConversation
+    );
+
+    const onDeleteConversation = (conversationId: string) => {
+        try {
+            toast.promise(
+                deleteConversation({
+                    variables: {
+                        conversationId,
+                    },
+                    update: () => {
+                        router.replace(
+                            typeof process.env.NEXT_PUBLIC_BASE_URL == "string"
+                                ? process.env.NEXT_PUBLIC_BASE_URL
+                                : ""
+                        );
+                    },
+                }),
+                {
+                    loading: "Deleting conversation...",
+                    success: "Conversation deleted!",
+                    error: "Error deleting conversation",
+                }
+            );
+        } catch (e: any) {
+            console.log("Deleting conversation error", e);
+        }
+    };
+
     const onModalOpen = () => setIsModalOpen(true);
     const onModalClose = () => setIsModalOpen(false);
 
+    const sortedConversations = [...conversations].sort(
+        (a, b) => b.updatedAt.valueOf() - a.updatedAt.valueOf()
+    );
+
     return (
-        <Box width="100%">
+        <Box width="100%" height={"100%"} position={"relative"}>
             <Box
                 py={2}
                 px={4}
@@ -49,7 +87,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
                 onModalClose={onModalClose}
                 session={session}
             />
-            {conversations.map((conversation) => {
+            {sortedConversations.map((conversation) => {
                 const participant = conversation.participants?.find(
                     (participant) => participant?.user?.id === userId
                 );
@@ -64,6 +102,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
                                 participant?.hasSeenLastMessage!
                             )
                         }
+                        onDeleteConversation={onDeleteConversation}
                         isSelected={
                             conversation.id === router.query.conversationId
                         }
@@ -73,6 +112,18 @@ const ConversationList: React.FC<ConversationListProps> = ({
                     />
                 );
             })}
+            <Box
+                position={"absolute"}
+                bottom={"0"}
+                left={"0"}
+                width={"100%"}
+                px={8}
+                py={3}
+            >
+                <Button width={"100%"} onClick={() => signOut()}>
+                    Log out
+                </Button>
+            </Box>
         </Box>
     );
 };
