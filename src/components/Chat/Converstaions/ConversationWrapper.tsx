@@ -1,9 +1,9 @@
 import { Box } from "@chakra-ui/react";
 import { Session } from "next-auth";
 import ConversationList from "./ConversationList";
-import { useQuery } from "@apollo/client";
+import { gql, useMutation, useQuery } from "@apollo/client";
 import conversationOperations from "@/graphql/operations/conversation";
-import { Conversation } from "@/gql/graphql";
+import { Conversation, Participant } from "@/gql/graphql";
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import SkeletonLoader from "@/components/common/SkeletonLoader";
@@ -15,6 +15,14 @@ interface ConversationWrapperProps {
 const ConversationWrapper: React.FC<ConversationWrapperProps> = ({
     session,
 }) => {
+    const router = useRouter();
+    const {
+        query: { conversationId },
+    } = router;
+    const {
+        user: { id: userId },
+    } = session;
+
     const {
         data: conversationsData,
         loading: conversationsLoading,
@@ -22,15 +30,78 @@ const ConversationWrapper: React.FC<ConversationWrapperProps> = ({
         subscribeToMore,
     } = useQuery(conversationOperations.Queries.conversations);
 
-    const router = useRouter();
-    const {
-        query: { conversationId },
-    } = router;
+    const [markConversationAsRead] = useMutation(
+        conversationOperations.Muatations.markConversationAsRead
+    );
 
-    console.log("Conversations", conversationsData);
-
-    const onViewConversation = async (conversationId: string) => {
+    const onViewConversation = async (
+        conversationId: string,
+        hasSeenLatestMessage: boolean | undefined
+    ) => {
         router.push({ query: { conversationId } });
+
+        if (hasSeenLatestMessage) return;
+        try {
+            console.log(
+                "OnviewConversation",
+                conversationId,
+                hasSeenLatestMessage
+            );
+            await markConversationAsRead({
+                variables: {
+                    userId,
+                    conversationId,
+                },
+                optimisticResponse: {
+                    markConversationAsRead: true,
+                },
+                update: (cache) => {
+                    const participantsFragment = cache.readFragment<{
+                        participants: Array<Participant>;
+                    }>({
+                        id: `Conversation:${conversationId}`,
+                        fragment: gql`
+                            fragment Participants on Conversation {
+                                participants {
+                                    user {
+                                        id
+                                        username
+                                    }
+                                    hasSeenLatestMessage
+                                }
+                            }
+                        `,
+                    });
+                    if (!participantsFragment) return;
+
+                    const participants = [...participantsFragment.participants];
+                    const userParticipantIndex = participants.findIndex(
+                        (participant) => participant.user?.id === userId
+                    );
+                    if (userParticipantIndex < 0) return;
+
+                    const userParticipant = participants[userParticipantIndex];
+                    participants[userParticipantIndex] = {
+                        ...userParticipant,
+                        hasSeenLastMessage: true,
+                    };
+
+                    cache.writeFragment({
+                        id: `Conversation:${conversationId}`,
+                        fragment: gql`
+                            fragment UpdateParticipant on Conversation {
+                                participants
+                            }
+                        `,
+                        data: {
+                            participants,
+                        },
+                    });
+                },
+            });
+        } catch (e: any) {
+            console.log(e?.message);
+        }
     };
 
     const subscribeToNewConversations = () => {

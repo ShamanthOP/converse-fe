@@ -30,6 +30,7 @@ interface ConversationItemProps {
     conversation: Conversation;
     onClick: () => void;
     isSelected: boolean;
+    hasSeenLatestMessage: boolean | undefined;
 }
 
 const ConversationItem: React.FC<ConversationItemProps> = ({
@@ -37,6 +38,7 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
     userId,
     onClick,
     isSelected,
+    hasSeenLatestMessage,
 }) => {
     const [menuOpen, setMenuOpen] = useState(false);
 
@@ -97,11 +99,11 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
                     )}
                 </MenuList>
             </Menu>
-            {/* <Flex position="absolute" left="-6px">
-        {hasSeenLatestMessage === false && (
-          <GoPrimitiveDot fontSize={18} color="#6B46C1" />
-        )}
-      </Flex> */}
+            <Flex position="absolute" left="-6px">
+                {hasSeenLatestMessage === false && (
+                    <GoPrimitiveDot fontSize={18} color="#90EE90" />
+                )}
+            </Flex>
             <Avatar />
             <Flex justify="space-between" width="80%" height="100%">
                 <Flex direction="column" width="70%" height="100%">
