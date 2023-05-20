@@ -1,4 +1,4 @@
-import { Conversation, Participant } from "@/gql/graphql";
+import { Conversation } from "@/gql/graphql";
 import {
     Menu,
     MenuItem,
@@ -16,7 +16,7 @@ import { GoPrimitiveDot } from "react-icons/go";
 import { MdDeleteOutline } from "react-icons/md";
 import { BiLogOut } from "react-icons/bi";
 import { AiOutlineEdit } from "react-icons/ai";
-import { formatUsernames } from "@/utils/functions";
+import { formatUsernames, participantImage } from "@/utils/functions";
 
 const formatRelativeLocale = {
     lastWeek: "eeee",
@@ -28,10 +28,13 @@ const formatRelativeLocale = {
 interface ConversationItemProps {
     userId: string;
     conversation: Conversation;
-    onClick: () => void;
+    onClick: (
+        conversationId: string,
+        hasSeenLastMessage: boolean | undefined
+    ) => void;
     onDeleteConversation: (conversationId: string) => void;
     isSelected: boolean;
-    hasSeenLatestMessage: boolean | undefined;
+    hasSeenLastMessage: boolean | undefined;
 }
 
 const ConversationItem: React.FC<ConversationItemProps> = ({
@@ -40,13 +43,13 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
     onClick,
     onDeleteConversation,
     isSelected,
-    hasSeenLatestMessage,
+    hasSeenLastMessage,
 }) => {
     const [menuOpen, setMenuOpen] = useState(false);
 
     const handleClick = (event: React.MouseEvent) => {
         if (event.type === "click") {
-            onClick();
+            onClick(conversation.id!, hasSeenLastMessage);
         } else if (event.type === "contextmenu") {
             event.preventDefault();
             setMenuOpen(true);
@@ -108,11 +111,17 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
                 </MenuList>
             </Menu>
             <Flex position="absolute" left="-6px">
-                {hasSeenLatestMessage === false && (
+                {!hasSeenLastMessage && (
                     <GoPrimitiveDot fontSize={18} color="#90EE90" />
                 )}
             </Flex>
-            <Avatar />
+            {participantImage(conversation.participants!, userId) ? (
+                <Avatar
+                    src={participantImage(conversation.participants!, userId)}
+                />
+            ) : (
+                <Avatar />
+            )}
             <Flex justify="space-between" width="80%" height="100%">
                 <Flex direction="column" width="70%" height="100%">
                     <Text

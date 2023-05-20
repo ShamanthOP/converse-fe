@@ -13,7 +13,7 @@ const EmptyFeed: React.FC = () => {
     const hasConversations = conversations.length;
     const displayText = hasConversations
         ? "Select a Conversation"
-        : "Let's get started😛";
+        : "Let's get started😋";
 
     return (
         <Flex height={"100%"} justify={"center"} align={"center"}>

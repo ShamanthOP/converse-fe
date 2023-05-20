@@ -24,27 +24,46 @@ const Messages: React.FC<MessagesProps> = ({ userId, conversationId }) => {
     );
 
     const subscribeToMoreMessages = (conversationId: string) => {
-        subscribeToMore({
-            document: messageOperations.Subscriptions.messageSent,
-            variables: { conversationId },
-            updateQuery: (prev, { subscriptionData }) => {
-                if (!subscriptionData) return prev;
-                console.log("Subscription message", subscriptionData);
-                const newMessage = subscriptionData.data.messageSent;
-                return Object.assign({}, prev, {
-                    messages:
-                        newMessage?.sender?.id === userId
-                            ? prev.messages
-                            : [
-                                  newMessage,
-                                  ...(prev.messages as Array<Message>),
-                              ],
-                });
-            },
-        });
+        console.log("Inside subscription", conversationId);
+        try {
+            subscribeToMore({
+                document: messageOperations.Subscriptions.messageSent,
+                variables: { conversationId },
+                updateQuery: (prev, { subscriptionData }) => {
+                    console.log(
+                        "Inside SUBSCRIPTION DATA",
+                        prev,
+                        subscriptionData
+                    );
+                    if (!subscriptionData) {
+                        console.log("No subscription data");
+                        return prev;
+                    }
+                    const newMessage = subscriptionData.data.messageSent;
+                    console.log(
+                        "Subscription DATA",
+                        subscriptionData,
+                        newMessage,
+                        userId
+                    );
+                    return Object.assign({}, prev, {
+                        messages:
+                            newMessage?.sender?.id === userId
+                                ? prev.messages
+                                : [
+                                      newMessage,
+                                      ...(prev.messages as Array<Message>),
+                                  ],
+                    });
+                },
+            });
+        } catch (e: any) {
+            console.log(e.message);
+        }
     };
 
     useEffect(() => {
+        console.log("UseEfect is called!!!!!");
         subscribeToMoreMessages(conversationId);
     }, [conversationId]);
 

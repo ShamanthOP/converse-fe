@@ -1,6 +1,5 @@
-import { Button, Flex } from "@chakra-ui/react";
+import { Flex } from "@chakra-ui/react";
 import { Session } from "next-auth";
-import { signOut } from "next-auth/react";
 import { useRouter } from "next/router";
 import MessageHeader from "./Messages/MessageHeader";
 import MessageInput from "./Messages/MessageInput";

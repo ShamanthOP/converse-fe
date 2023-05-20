@@ -92,7 +92,14 @@ const ConversationModal: React.FC<ConversationModalProps> = ({
 
     return (
         <>
-            <Modal isOpen={isModalOpen} onClose={onModalClose}>
+            <Modal
+                isOpen={isModalOpen}
+                onClose={() => {
+                    setParticipants([]);
+                    setUsername("");
+                    onModalClose();
+                }}
+            >
                 <ModalOverlay />
                 <ModalContent bg={"#2d2d2d"} pb={4}>
                     <ModalHeader>Create a Conversation</ModalHeader>

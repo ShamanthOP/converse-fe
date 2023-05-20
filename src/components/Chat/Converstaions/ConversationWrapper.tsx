@@ -73,24 +73,17 @@ const ConversationWrapper: React.FC<ConversationWrapperProps> = ({
                     }),
                 },
             });
-
             router.push("/");
         },
     });
 
     const onViewConversation = async (
         conversationId: string,
-        hasSeenLatestMessage: boolean | undefined
+        hasSeenLastMessage: boolean | undefined
     ) => {
         router.push({ query: { conversationId } });
-
-        if (hasSeenLatestMessage) return;
+        if (hasSeenLastMessage) return;
         try {
-            console.log(
-                "OnviewConversation",
-                conversationId,
-                hasSeenLatestMessage
-            );
             await markConversationAsRead({
                 variables: {
                     userId,
@@ -110,8 +103,9 @@ const ConversationWrapper: React.FC<ConversationWrapperProps> = ({
                                     user {
                                         id
                                         username
+                                        image
                                     }
-                                    hasSeenLatestMessage
+                                    hasSeenLastMessage
                                 }
                             }
                         `,

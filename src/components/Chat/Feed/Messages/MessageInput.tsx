@@ -56,6 +56,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
                                     sender: {
                                         id: session.user.id,
                                         username: session.user.username,
+                                        image: session.user.image,
                                     },
                                     createdAt: new Date(Date.now()),
                                 },

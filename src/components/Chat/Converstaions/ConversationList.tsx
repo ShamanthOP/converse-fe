@@ -15,7 +15,7 @@ interface ConversationListProps {
     conversations: Array<Conversation>;
     onViewConversation: (
         conversationId: string,
-        hasSeenLatestMessage: boolean
+        hasSeenLastMessage: boolean | undefined
     ) => void;
 }
 
@@ -25,6 +25,9 @@ const ConversationList: React.FC<ConversationListProps> = ({
     onViewConversation,
 }) => {
     const router = useRouter();
+    const {
+        query: { conversationId },
+    } = router;
     const {
         user: { id: userId },
     } = session;
@@ -96,17 +99,10 @@ const ConversationList: React.FC<ConversationListProps> = ({
                         key={conversation.id}
                         userId={userId}
                         conversation={conversation}
-                        onClick={() =>
-                            onViewConversation(
-                                conversation.id!,
-                                participant?.hasSeenLastMessage!
-                            )
-                        }
+                        onClick={onViewConversation}
                         onDeleteConversation={onDeleteConversation}
-                        isSelected={
-                            conversation.id === router.query.conversationId
-                        }
-                        hasSeenLatestMessage={
+                        isSelected={conversation.id === conversationId}
+                        hasSeenLastMessage={
                             participant?.hasSeenLastMessage ?? undefined
                         }
                     />

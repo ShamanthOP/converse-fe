@@ -1,3 +1,4 @@
+import SkeletonLoader from "@/components/common/SkeletonLoader";
 import conversationOperations from "@/graphql/operations/conversation";
 import { formatUsernames } from "@/utils/functions";
 import { useQuery } from "@apollo/client";
@@ -35,12 +36,12 @@ const MessageHeader: React.FC<MessageHeaderProps> = ({
             <Button
                 display={{ md: "none" }}
                 onClick={() => {
-                    router.replace("?conversationId", "/", { shallow: true });
+                    router.push("/");
                 }}
             >
                 Back
             </Button>
-            {/* {loading && SkeletonLoader} */}
+            {/* {loading && <SkeletonLoader />} */}
             {!conversation && !loading && <Text>Conversation not found</Text>}
             {conversation && (
                 <Stack direction={"row"}>

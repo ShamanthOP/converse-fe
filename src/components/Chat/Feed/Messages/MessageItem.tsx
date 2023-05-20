@@ -27,7 +27,11 @@ const MessageItem: React.FC<MessageItemProps> = ({ message, sentByMe }) => {
         >
             {!sentByMe && (
                 <Flex align={"flex-end"}>
-                    <Avatar size={"sm"} />
+                    {message.sender?.image ? (
+                        <Avatar src={message.sender.image} size={"sm"} />
+                    ) : (
+                        <Avatar size={"sm"} />
+                    )}
                 </Flex>
             )}
             <Stack spacing={1} width={"100%"}>
