@@ -9,6 +9,7 @@ const messageOperations = {
                     sender {
                         id
                         username
+                        image
                     }
                     body
                     createdAt
@@ -41,6 +42,7 @@ const messageOperations = {
                     sender {
                         id
                         username
+                        image
                     }
                     body
                     createdAt
