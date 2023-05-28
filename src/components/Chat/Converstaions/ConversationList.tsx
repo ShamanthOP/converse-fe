@@ -2,13 +2,14 @@ import ConversationModal from "@/components/Chat/Converstaions/Modal/Conversatio
 import { Conversation } from "@/gql/graphql";
 import { Box, Button, Text } from "@chakra-ui/react";
 import { Session } from "next-auth";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import ConversationItem from "./ConversationItem";
 import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";
 import { useMutation } from "@apollo/client";
 import conversationOperations from "@/graphql/operations/conversation";
 import { signOut } from "next-auth/react";
+import { ModalContext, ModalInterface } from "@/context/ModalContext";
 
 interface ConversationListProps {
     session: Session;
@@ -31,7 +32,9 @@ const ConversationList: React.FC<ConversationListProps> = ({
     const {
         user: { id: userId },
     } = session;
-    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const { isModalOpen, openModal, closeModal } =
+        useContext<ModalInterface>(ModalContext);
 
     const [deleteConversation] = useMutation(
         conversationOperations.Muatations.deleteConversation
@@ -63,9 +66,6 @@ const ConversationList: React.FC<ConversationListProps> = ({
         }
     };
 
-    const onModalOpen = () => setIsModalOpen(true);
-    const onModalClose = () => setIsModalOpen(false);
-
     const sortedConversations = [...conversations].sort(
         (a, b) => b.updatedAt.valueOf() - a.updatedAt.valueOf()
     );
@@ -79,7 +79,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
                 bg="blackAlpha.400"
                 borderRadius={4}
                 cursor="pointer"
-                onClick={onModalOpen}
+                onClick={openModal}
             >
                 <Text color={"whiteAlpha.800"} fontWeight={500}>
                     Find or start a conversation
@@ -87,7 +87,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
             </Box>
             <ConversationModal
                 isModalOpen={isModalOpen}
-                onModalClose={onModalClose}
+                onModalClose={closeModal}
                 session={session}
             />
             {sortedConversations.map((conversation) => {

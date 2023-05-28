@@ -3,11 +3,13 @@ import { Avatar, Button, Flex, Stack, Text } from "@chakra-ui/react";
 
 interface UserSearchListProps {
     users: Array<SearchedUser>;
+    participants: Array<SearchedUser>;
     addParticipant: (user: SearchedUser) => void;
 }
 
 const UserSearchList: React.FC<UserSearchListProps> = ({
     users,
+    participants,
     addParticipant,
 }) => {
     return (
@@ -41,6 +43,12 @@ const UserSearchList: React.FC<UserSearchListProps> = ({
                                     </Text>
                                     <Button
                                         bg={"brand.100"}
+                                        disabled={
+                                            !!participants.find(
+                                                (participant) =>
+                                                    participant.id === user.id
+                                            )
+                                        }
                                         _hover={{ bg: "brand.100" }}
                                         onClick={() => {
                                             addParticipant(user);

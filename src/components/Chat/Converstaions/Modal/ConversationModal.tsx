@@ -48,9 +48,7 @@ const ConversationModal: React.FC<ConversationModalProps> = ({
         useMutation(conversationOperations.Muatations.createConversation);
 
     const addParticipant = (user: SearchedUser) => {
-        if (!participants.find((participant) => participant.id === user.id)) {
-            setParticipants((prev) => [...prev, user]);
-        }
+        setParticipants((prev) => [...prev, user]);
         setUsername("");
     };
 
@@ -102,7 +100,7 @@ const ConversationModal: React.FC<ConversationModalProps> = ({
             >
                 <ModalOverlay />
                 <ModalContent bg={"#2d2d2d"} pb={4}>
-                    <ModalHeader>Create a Conversation</ModalHeader>
+                    <ModalHeader>Find or Create a Conversation</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
                         <form onSubmit={onSearch}>
@@ -126,6 +124,7 @@ const ConversationModal: React.FC<ConversationModalProps> = ({
                         {data?.searchUsers && (
                             <UserSearchList
                                 users={data.searchUsers as SearchedUser[]}
+                                participants={participants}
                                 addParticipant={addParticipant}
                             />
                         )}
