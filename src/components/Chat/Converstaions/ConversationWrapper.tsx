@@ -73,7 +73,10 @@ const ConversationWrapper: React.FC<ConversationWrapperProps> = ({
                     }),
                 },
             });
-            router.push("/");
+            router.push({
+                pathname: "/",
+                query: {},
+            });
         },
     });
 

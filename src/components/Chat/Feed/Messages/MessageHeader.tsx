@@ -36,7 +36,10 @@ const MessageHeader: React.FC<MessageHeaderProps> = ({
             <Button
                 display={{ md: "none" }}
                 onClick={() => {
-                    router.push("/");
+                    router.push({
+                        pathname: "/",
+                        query: {},
+                    });
                 }}
             >
                 Back

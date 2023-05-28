@@ -13,7 +13,7 @@ interface MessagesProps {
 }
 
 const Messages: React.FC<MessagesProps> = ({ userId, conversationId }) => {
-    const { data, loading, error, subscribeToMore } = useQuery(
+    const { data, loading, error, subscribeToMore, refetch } = useQuery(
         messageOperations.Queries.messages,
         {
             variables: { conversationId },
@@ -26,7 +26,7 @@ const Messages: React.FC<MessagesProps> = ({ userId, conversationId }) => {
     const subscribeToMoreMessages = (conversationId: string) => {
         console.log("Inside subscription", conversationId);
         try {
-            subscribeToMore({
+            return subscribeToMore({
                 document: messageOperations.Subscriptions.messageSent,
                 variables: { conversationId },
                 updateQuery: (prev, { subscriptionData }) => {
@@ -63,15 +63,16 @@ const Messages: React.FC<MessagesProps> = ({ userId, conversationId }) => {
     };
 
     useEffect(() => {
-        console.log("UseEfect is called!!!!!");
-        subscribeToMoreMessages(conversationId);
+        refetch({ conversationId });
+        const unsubscribe = subscribeToMoreMessages(conversationId);
+        if (unsubscribe) return () => unsubscribe();
     }, [conversationId]);
 
     if (error) {
         return null;
     }
 
-    console.log("Messages data", data);
+    console.log("Messages data", data, conversationId);
 
     return (
         <Flex direction={"column"} justify={"flex-end"} overflow={"hidden"}>
