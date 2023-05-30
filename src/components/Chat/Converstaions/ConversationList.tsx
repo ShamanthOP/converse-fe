@@ -1,5 +1,5 @@
 import ConversationModal from "@/components/Chat/Converstaions/Modal/ConversationModal";
-import { Conversation } from "@/gql/graphql";
+import { Conversation, Participant } from "@/gql/graphql";
 import { Box, Button, Text } from "@chakra-ui/react";
 import { Session } from "next-auth";
 import { useContext, useState } from "react";
@@ -33,12 +33,43 @@ const ConversationList: React.FC<ConversationListProps> = ({
         user: { id: userId },
     } = session;
 
+    const [editingConversation, setEditingConversation] =
+        useState<Conversation | null>(null);
+
     const { isModalOpen, openModal, closeModal } =
         useContext<ModalInterface>(ModalContext);
+
+    const [updateParticipants, { loading: updatedParticipantsLoading }] =
+        useMutation(conversationOperations.Muatations.updatePartcicpants);
 
     const [deleteConversation] = useMutation(
         conversationOperations.Muatations.deleteConversation
     );
+
+    const onLeaveConversation = async (conversation: Conversation) => {
+        const participantIds = conversation.participants
+            ?.filter((participant) => {
+                return participant?.user?.id !== userId;
+            })
+            .map((p) => p?.user?.id);
+
+        try {
+            if (!conversation.id || !participantIds) return;
+            const { data, errors } = await updateParticipants({
+                variables: {
+                    conversationId: conversation.id,
+                    participantIds: participantIds as Array<string>,
+                },
+            });
+
+            if (!data || errors) {
+                throw new Error("Failed to update participants!");
+            }
+        } catch (e: any) {
+            console.log("updateParticipants error", e.message);
+            toast.error(e.message);
+        }
+    };
 
     const onDeleteConversation = (conversationId: string) => {
         try {
@@ -66,6 +97,22 @@ const ConversationList: React.FC<ConversationListProps> = ({
         }
     };
 
+    const getUserParticipant = (conversation: Conversation) => {
+        return conversation.participants?.find(
+            (p) => p?.user?.id === userId
+        ) as Participant;
+    };
+
+    const onEditConversation = (conversation: Conversation) => {
+        setEditingConversation(conversation);
+        openModal();
+    };
+
+    const toggleModalClose = () => {
+        setEditingConversation(null);
+        closeModal();
+    };
+
     const sortedConversations = [...conversations].sort(
         (a, b) => b.updatedAt.valueOf() - a.updatedAt.valueOf()
     );
@@ -87,24 +134,36 @@ const ConversationList: React.FC<ConversationListProps> = ({
             </Box>
             <ConversationModal
                 isModalOpen={isModalOpen}
-                onModalClose={closeModal}
+                onModalClose={toggleModalClose}
                 session={session}
+                conversations={conversations}
+                editingConversation={editingConversation}
+                getUserParticipant={getUserParticipant}
+                onViewConversation={onViewConversation}
             />
             {sortedConversations.map((conversation) => {
-                const participant = conversation.participants?.find(
-                    (participant) => participant?.user?.id === userId
-                );
+                // const participant = conversation.participants?.find(
+                //     (participant) => participant?.user?.id === userId
+                // );
+                const { hasSeenLastMessage } = getUserParticipant(conversation);
                 return (
                     <ConversationItem
                         key={conversation.id}
                         userId={userId}
                         conversation={conversation}
-                        onClick={onViewConversation}
-                        onDeleteConversation={onDeleteConversation}
-                        isSelected={conversation.id === conversationId}
-                        hasSeenLastMessage={
-                            participant?.hasSeenLastMessage ?? undefined
+                        onClick={() =>
+                            onViewConversation(
+                                conversation.id!,
+                                hasSeenLastMessage ?? true
+                            )
                         }
+                        onDeleteConversation={onDeleteConversation}
+                        selectedConversationId={conversationId as string}
+                        hasSeenLastMessage={hasSeenLastMessage ?? true}
+                        onEditConversation={() =>
+                            onEditConversation(conversation)
+                        }
+                        onLeaveConversation={onLeaveConversation}
                     />
                 );
             })}

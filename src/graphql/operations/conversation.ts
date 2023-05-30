@@ -46,6 +46,17 @@ const conversationOperations = {
                 deleteConversation(conversationId: $conversationId)
             }
         `),
+        updatePartcicpants: gql(`
+            mutation UpdateParticipants(
+                $conversationId: String!
+                $participantIds: [String]!
+            ) {
+                updateParticipants(
+                    conversationId: $conversationId
+                    participantIds: $participantIds
+                )
+            }
+        `),
     },
     Subscriptions: {
         conversationCreated: gql(`
@@ -76,25 +87,29 @@ const conversationOperations = {
         conversationUpdated: gql(`
             subscription ConversationUpdated {
                 conversationUpdated {
-                    id
-                    participants {
-                        user {
-                            id
-                            username
-                            image
+                    conversation {
+                        id
+                        participants {
+                            user {
+                                id
+                                username
+                                image
+                            }
+                            hasSeenLastMessage
                         }
-                        hasSeenLastMessage
-                    }
-                    latestMessage {
-                        id 
-                        sender {
-                            id
-                            username
+                        latestMessage {
+                            id 
+                            sender {
+                                id
+                                username
+                            }
+                            body
+                            createdAt
                         }
-                        body
-                        createdAt
+                        updatedAt
                     }
-                    updatedAt
+                    addedUserIds
+                    removedUserIds
                 }
             }
         `),

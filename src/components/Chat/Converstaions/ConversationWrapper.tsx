@@ -7,6 +7,7 @@ import { Conversation, Participant } from "@/gql/graphql";
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import SkeletonLoader from "@/components/common/SkeletonLoader";
+import messageOperations from "@/graphql/operations/message";
 
 interface ConversationWrapperProps {
     session: Session;
@@ -41,10 +42,116 @@ const ConversationWrapper: React.FC<ConversationWrapperProps> = ({
                 return;
             }
 
-            const currentlyViewingConversation =
-                subscriptionData.conversationUpdated?.id === conversationId;
-            if (currentlyViewingConversation) {
+            const updatedConversation =
+                subscriptionData.conversationUpdated?.conversation;
+            const addedUserIds =
+                subscriptionData.conversationUpdated?.addedUserIds;
+            const removedUserIds =
+                subscriptionData.conversationUpdated?.removedUserIds;
+
+            const updatedConversationId = updatedConversation?.id;
+            const latestMessage = updatedConversation?.latestMessage;
+
+            console.log("NEW DATA DEBUG", removedUserIds);
+
+            //Check if the user is being removed
+            if (removedUserIds && removedUserIds.length) {
+                const isUserRemoved = removedUserIds.find(
+                    (id) => id === userId
+                );
+                if (isUserRemoved) {
+                    const conversationData = client.readQuery({
+                        query: conversationOperations.Queries.conversations,
+                    });
+                    if (!conversationData) return;
+
+                    client.writeQuery({
+                        query: conversationOperations.Queries.conversations,
+                        data: {
+                            conversations:
+                                conversationData.conversations?.filter(
+                                    (conversation) => {
+                                        return (
+                                            conversation?.id !==
+                                            updatedConversationId
+                                        );
+                                    }
+                                ),
+                        },
+                    });
+
+                    if (conversationId === updatedConversationId) {
+                        router.replace(
+                            typeof process.env.NEXT_PUBLIC_BASE_URL === "string"
+                                ? process.env.NEXT_PUBLIC_BASE_URL
+                                : ""
+                        );
+                    }
+
+                    return;
+                }
+            }
+            if (addedUserIds && addedUserIds.length) {
+                const isBeingAdded = addedUserIds.find((id) => id === userId);
+
+                if (isBeingAdded) {
+                    const conversationData = client.readQuery({
+                        query: conversationOperations.Queries.conversations,
+                    });
+                    if (!conversationData) return;
+
+                    if (!updatedConversation) return;
+                    client.writeQuery({
+                        query: conversationOperations.Queries.conversations,
+                        data: {
+                            conversations: [
+                                ...(conversationData.conversations || []),
+                                updatedConversation,
+                            ],
+                        },
+                    });
+                }
+            }
+
+            /**
+             * Already viewing conversation where
+             * new message is received; no need
+             * to manually update cache due to
+             * message subscription
+             */
+            if (updatedConversationId === conversationId) {
                 onViewConversation(conversationId!, false);
+                return;
+            }
+
+            const existingMessages = client.readQuery({
+                query: messageOperations.Queries.messages,
+            });
+            if (!existingMessages || !existingMessages.messages) return;
+
+            /**
+             * Check if lastest message is already present
+             * in the message query
+             */
+            const hasLatestMessage = existingMessages.messages.find(
+                (message) => message?.id === latestMessage?.id
+            );
+
+            /**
+             * Update query as re-fetch won't happen if you
+             * view a conversation you've already viewed due
+             * to caching
+             */
+            if (!hasLatestMessage) {
+                if (!updatedConversationId || !latestMessage) return;
+                client.writeQuery({
+                    query: messageOperations.Queries.messages,
+                    variables: { conversationId: updatedConversationId },
+                    data: {
+                        ...existingMessages,
+                        messages: [latestMessage, ...existingMessages.messages],
+                    },
+                });
             }
         },
     });
