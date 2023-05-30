@@ -17,6 +17,7 @@ import { MdDeleteOutline } from "react-icons/md";
 import { BiLogOut } from "react-icons/bi";
 import { AiOutlineEdit } from "react-icons/ai";
 import { formatUsernames, participantImage } from "@/utils/functions";
+import useLongPress from "@/hooks/useLongPress";
 
 const formatRelativeLocale = {
     lastWeek: "eeee",
@@ -28,13 +29,12 @@ const formatRelativeLocale = {
 interface ConversationItemProps {
     userId: string;
     conversation: Conversation;
-    onClick: (
-        conversationId: string,
-        hasSeenLastMessage: boolean | undefined
-    ) => void;
-    onDeleteConversation: (conversationId: string) => void;
-    isSelected: boolean;
-    hasSeenLastMessage: boolean | undefined;
+    onClick: () => void;
+    onEditConversation?: () => void;
+    onDeleteConversation?: (conversationId: string) => void;
+    selectedConversationId?: string;
+    hasSeenLastMessage?: boolean | undefined;
+    onLeaveConversation?: (conversation: Conversation) => void;
 }
 
 const ConversationItem: React.FC<ConversationItemProps> = ({
@@ -42,19 +42,33 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
     userId,
     onClick,
     onDeleteConversation,
-    isSelected,
+    selectedConversationId,
     hasSeenLastMessage,
+    onEditConversation,
+    onLeaveConversation,
 }) => {
     const [menuOpen, setMenuOpen] = useState(false);
 
+    const onLongPress = useLongPress<HTMLDivElement>(
+        {
+            onLongPress(e) {
+                setMenuOpen(true);
+            },
+        },
+        { shouldPreventDefault: true }
+    );
+
     const handleClick = (event: React.MouseEvent) => {
         if (event.type === "click") {
-            onClick(conversation.id!, hasSeenLastMessage);
+            onClick();
         } else if (event.type === "contextmenu") {
             event.preventDefault();
             setMenuOpen(true);
         }
     };
+
+    const showMenu =
+        onEditConversation && onDeleteConversation && onLeaveConversation;
 
     return (
         <Stack
@@ -64,52 +78,64 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
             p={4}
             cursor="pointer"
             borderRadius={4}
-            bg={isSelected ? "whiteAlpha.100" : "none"}
-            _hover={{ bg: isSelected ? "whiteAlpha.100" : "whiteAlpha.50" }}
+            bg={
+                selectedConversationId === conversation.id
+                    ? "whiteAlpha.100"
+                    : "none"
+            }
+            _hover={{
+                bg:
+                    selectedConversationId === conversation.id
+                        ? "whiteAlpha.100"
+                        : "whiteAlpha.50",
+            }}
             onClick={handleClick}
             onContextMenu={handleClick}
+            {...onLongPress}
             position="relative"
         >
-            <Menu isOpen={menuOpen} onClose={() => setMenuOpen(false)}>
-                <MenuList bg={"#2d2d2d"}>
-                    <MenuItem
-                        icon={<AiOutlineEdit fontSize={20} />}
-                        onClick={(event) => {
-                            event.stopPropagation();
-                            //   onEditConversation();
-                        }}
-                        bg={"#2d2d2d"}
-                        _hover={{ bg: "whiteAlpha.300" }}
-                    >
-                        Edit
-                    </MenuItem>
-                    {conversation.participants?.length! > 2 ? (
+            {showMenu && (
+                <Menu isOpen={menuOpen} onClose={() => setMenuOpen(false)}>
+                    <MenuList bg={"#2d2d2d"}>
                         <MenuItem
-                            icon={<BiLogOut fontSize={20} />}
+                            icon={<AiOutlineEdit fontSize={20} />}
                             onClick={(event) => {
                                 event.stopPropagation();
-                                // onLeaveConversation(conversation);
+                                onEditConversation();
                             }}
                             bg={"#2d2d2d"}
                             _hover={{ bg: "whiteAlpha.300" }}
                         >
-                            Leave
+                            Edit
                         </MenuItem>
-                    ) : (
-                        <MenuItem
-                            icon={<MdDeleteOutline fontSize={20} />}
-                            onClick={(event) => {
-                                event.stopPropagation();
-                                onDeleteConversation(conversation.id!);
-                            }}
-                            bg={"#2d2d2d"}
-                            _hover={{ bg: "whiteAlpha.300" }}
-                        >
-                            Delete
-                        </MenuItem>
-                    )}
-                </MenuList>
-            </Menu>
+                        {conversation.participants?.length! > 2 ? (
+                            <MenuItem
+                                icon={<BiLogOut fontSize={20} />}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    onLeaveConversation(conversation);
+                                }}
+                                bg={"#2d2d2d"}
+                                _hover={{ bg: "whiteAlpha.300" }}
+                            >
+                                Leave
+                            </MenuItem>
+                        ) : (
+                            <MenuItem
+                                icon={<MdDeleteOutline fontSize={20} />}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    onDeleteConversation(conversation.id!);
+                                }}
+                                bg={"#2d2d2d"}
+                                _hover={{ bg: "whiteAlpha.300" }}
+                            >
+                                Delete
+                            </MenuItem>
+                        )}
+                    </MenuList>
+                </Menu>
+            )}
             <Flex position="absolute" left="-6px">
                 {!hasSeenLastMessage && (
                     <GoPrimitiveDot fontSize={18} color="#90EE90" />
