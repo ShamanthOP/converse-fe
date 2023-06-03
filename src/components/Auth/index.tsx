@@ -5,6 +5,7 @@ import { Session } from "next-auth";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
+import { BiMessageSquareDots } from "react-icons/bi";
 
 interface AuthProps {
     session: Session | null;
@@ -62,19 +63,24 @@ const Auth: React.FC<AuthProps> = ({ session, reloadSession }) => {
                     </>
                 ) : (
                     <>
-                        <Text fontSize="3xl">Converse</Text>
-                        <Button
-                            onClick={() => signIn("google")}
-                            leftIcon={
-                                <Image
-                                    height="20px"
-                                    src="/images/googlelogo.png"
-                                    alt="Logo"
-                                />
-                            }
-                        >
-                            Continue with Google
-                        </Button>
+                        <Stack spacing={20} align={"center"}>
+                            <Stack direction={"row"} align={"center"}>
+                                <BiMessageSquareDots fontSize={90} />
+                                <Text fontSize="5xl">Converse</Text>
+                            </Stack>
+                            <Button
+                                onClick={() => signIn("google")}
+                                leftIcon={
+                                    <Image
+                                        height="20px"
+                                        src="/images/googlelogo.png"
+                                        alt="Logo"
+                                    />
+                                }
+                            >
+                                Continue with Google
+                            </Button>
+                        </Stack>
                     </>
                 )}
             </Stack>

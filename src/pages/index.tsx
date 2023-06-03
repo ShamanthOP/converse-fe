@@ -7,6 +7,7 @@ import Chat from "@/components/Chat";
 import Auth from "@/components/Auth";
 import { useEffect } from "react";
 import { useRouter } from "next/router";
+import Head from "next/head";
 
 const Home: NextPage = () => {
     const { data: session } = useSession();
@@ -25,6 +26,9 @@ const Home: NextPage = () => {
 
     return (
         <Box>
+            <Head>
+                <title>Converse</title>
+            </Head>
             {session?.user.username ? (
                 <Chat session={session} />
             ) : (
